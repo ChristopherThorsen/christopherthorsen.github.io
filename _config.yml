@@ -1,0 +1,53 @@
+# Build settings
+markdown: redcarpet
+highlighter: pygments
+
+# Site settings
+title: "The Blog"
+description: > # this means to ignore newlines until "email:"
+   A blog written by me where I will try to give back to the community that has given me so much
+
+email: thorsen41@gmail.com
+#blog logo
+logo: "/assets/images/my_github_picture.jpeg"
+# blog cover
+cover: "/assets/images/woods.jpg"
+
+name: 'Chris Thorsen'
+author: 'Chris Thorsen'
+author_image: "/assets/images/my_github_picture.jpeg"
+
+paginate:	5
+
+url: "http://ChristopherThorsen.github.io" # the base hostname & protocol for your site
+baseurl: ""
+
+# social icons and sharing options
+social:
+  - icon:	twitter
+    url:	https://twitter.com/therealthorsen
+    desc: Follow me on twitter
+    share_url: http://twitter.com/share
+    share_title: ?text=
+    share_link: "&amp;url="
+
+#  - icon:	facebook
+#    url:	https://facebook.com/???
+#    desc: Connect with me facebook
+#    share_url: //www.facebook.com/sharer.php
+#    share_title: ?t=
+#    share_link: "&amp;u="
+
+  - icon:	github
+    url:	https://github.com/ChristopherThorsen
+    desc:	Fork me on github
+    share_url:
+    share_title:
+    share_link:
+
+#  - icon:	google-plus
+#    url:	https://google.com/???
+#    desc:	Add me on google+
+#    share_url:
+#    share_title:
+#    share_link:

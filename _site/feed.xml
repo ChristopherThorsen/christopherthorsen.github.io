@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>The Blog</title>
+    <description>A blog written by me where I will try to give back to the community that has given me so much
+</description>
+    <link>http://ChristopherThorsen.github.io/</link>
+    <atom:link href="http://ChristopherThorsen.github.io/feed.xml" rel="self" type="application/rss+xml" />
+    <pubDate>Thu, 02 Oct 2014 14:58:49 -0400</pubDate>
+    <lastBuildDate>Thu, 02 Oct 2014 14:58:49 -0400</lastBuildDate>
+    <generator>Jekyll v2.4.0</generator>
+    
+      <item>
+        <title>Koala Facebook and Rails, oh my</title>
+        <description>&lt;div&gt;First things first... we are going to need to install 2 gems to make our
+facebook connection work. We are going to use dotenv-rails and koala.&lt;/div&gt;
+
+&lt;p&gt;To the Gemfile&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;gem &amp;#39;dotenv-rails&amp;#39;
+gem &amp;#39;koala&amp;#39;, &amp;#39;~&amp;gt; 1.10.0rc&amp;#39;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Step 2... we need to create a .env file that we will put our facebook app&lt;em&gt;id and
+facebook&lt;/em&gt;secret key into. This information is now in the environment and
+dotenv-rails will be able to fetch it....very good news&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;FACEBOOK_APP_ID=&amp;#39;Your Facebook App id&amp;#39;                     
+FACEBOOK_SECRET=&amp;#39;Your Facebook secret key&amp;#39;    
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Wait a second...where do we get these keys? Create an app on the Facebook
+Developers page and Facebook will be kind enough to give you your very own
+app_id and a secret key.&lt;/p&gt;
+
+&lt;p&gt;REMEMBER PUT THE .env FILE INTO THE .gitignore IF YOU
+DONT THE SECRET KEY IS NOT GOING TO BE A SECRET!&lt;/p&gt;
+
+&lt;p&gt;Next we are going to show the user a link to sign into facebook:&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;link_to(&amp;quot;Login&amp;quot;, Koala::Facebook::OAuth.new(ENV.fetch(&amp;#39;FACEBOOK_APP_ID&amp;#39;), ENV.fetch(&amp;#39;FACEBOOK_SECRET&amp;#39;), sessions_url).url_for_oauth_code) %&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Koala::Facebook:OAuth.new takes three arguments, the app id and the app&lt;em&gt;secret which we fetch using
+dotenv-rails and where we want Facebook&amp;#39;s response to be targeted. I chose to
+send facebook&amp;#39;s response to the sessions&lt;/em&gt;url which will trigger Sessions.new.&lt;/p&gt;
+
+&lt;p&gt;Recap: we used the Koala gem to send a login request to facebook and the
+response is going to the Sessions controller... what are we going to do now?&lt;/p&gt;
+
+&lt;p&gt;Sessions Controller:&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;access_token = set_access_token                         
+user = FacebookUser.new(access_token).find_or_create    
+session[:facebook_id] = user.facebook_id                
+session[:name] = user.name                              
+redirect_to :dashboard                                  
+
+
+
+def set_access_token 
+  if params[:code]  
+    Koala::Facebook::OAuth.new(ENV.fetch(&amp;#39;FACEBOOK_APP_ID&amp;#39;),ENV.fetch(&amp;#39;FACEBOOK_SECRET&amp;#39;), sessions_url).get_access_token(params[:code])
+  end
+end                                                                         
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;FacebookUser.new is a service method that we are going to create and use to either find a
+user who is already in our database or persist a new user. &lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;class FacebookUser                                                    
+
+  def initialize(access_token)                                        
+    graph = Koala::Facebook::API.new(access_token)                    
+    user = graph.get_object(&amp;quot;me&amp;quot;)                                     
+    @facebook_id = user[&amp;quot;id&amp;quot;]                                         
+    @name = user[&amp;quot;first_name&amp;quot;] + &amp;quot; &amp;quot; + user[&amp;quot;last_name&amp;quot;]              
+  end                                                                 
+
+  def find_or_create                                                  
+    User.where(facebook_id: @facebook_id).first_or_create(user_params)
+  end                                                                 
+
+  def user_params                                                     
+    {                                                                 
+      name: @name,                                                    
+      facebook_id: @facebook_id                                       
+    }                                                                 
+  end                                                                 
+end                                                                   
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;In my very simple app outline I only wanted users to have a facebook_id and a
+name. My schema looks like this&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;create_table &amp;quot;users&amp;quot;, force: true do |t|                                      
+  5     t.string   &amp;quot;facebook_id&amp;quot;                                                    
+  6     t.datetime &amp;quot;created_at&amp;quot;                                                     
+  7     t.datetime &amp;quot;updated_at&amp;quot;                                                     
+  8     t.string   &amp;quot;name&amp;quot;,        null: false                                       
+  9   end                                      
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Great we have sent a request to Facebook, got a response directed to the
+sessions new controller, either found the user or created him in our database
+now we can look back at the Sessions controller to see where to go next&lt;/p&gt;
+
+&lt;p&gt;Sessions Controller:&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;access_token = set_access_token                         
+user = FacebookUser.new(access_token).find_or_create    
+session[:facebook_id] = user.facebook_id                
+session[:name] = user.name                              
+redirect_to :dashboard                                  
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;We want to store the user&amp;#39;s facebook_id as well as their name in the session so
+we can call them all over our wonderful app         &lt;/p&gt;
+
+&lt;p&gt;---Chris Thorsen&lt;/p&gt;
+</description>
+        <pubDate>Thu, 02 Oct 2014 10:34:25 -0400</pubDate>
+        <link>http://ChristopherThorsen.github.io/jekyll/update/2014/10/02/welcome-to-jekyll.html</link>
+        <guid isPermaLink="true">http://ChristopherThorsen.github.io/jekyll/update/2014/10/02/welcome-to-jekyll.html</guid>
+        
+        <category>featured</category>
+        
+        
+        <category>jekyll</category>
+        
+        <category>update</category>
+        
+      </item>
+    
+  </channel>
+</rss>

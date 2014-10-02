@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <meta charset="utf-8">
+  <!-- (1) Optimize for mobile versions: http://goo.gl/EOpFl -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- (1) force latest IE rendering engine: bit.ly/1c8EiC9 -->
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+  <title>Koala Facebook and Rails, oh my</title>
+  <meta name="description" content="A blog written by me where I will try to give back to the community that has given me so much
+" />
+
+  <meta name="HandheldFriendly" content="True" />
+  <meta name="MobileOptimized" content="320" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <link rel="canonical" href="http://ChristopherThorsen.github.io/jekyll/update/2014/10/02/welcome-to-jekyll.html">
+
+  <link rel="shortcut icon" href="/assets/images/favicon.ico">
+<!--  <link rel="stylesheet" href=""> -->
+  <link rel="stylesheet" href="http://brick.a.ssl.fastly.net/Linux+Libertine:400,400i,700,700i/Open+Sans:400,400i,700,700i">
+  <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css" >
+
+  <link rel="stylesheet" type="text/css" media="screen" href="/css/main.css" />
+  <link rel="stylesheet" type="text/css" media="print" href="/css/print.css" />
+  <script src="https://code.jquery.com/jquery-1.11.0.min.js"></script>
+
+  <script type="text/javascript" src="/assets/js/jquery.fitvids.js"></script>
+  <script type="text/javascript" src="/assets/js/index.js"></script>
+  <script type="text/javascript" src="/assets/js/readingTime.min.js"></script>
+</head>
+
+  <body itemscope itemtype="http://schema.org/Article">
+    <!-- header start -->
+
+<a href="http://ChristopherThorsen.github.io" class="logo-readium"><span class="logo" style="background-image: url(/assets/images/my_github_picture.jpeg)"></span></a>
+
+<!-- header end -->
+
+    <main class="content" role="main">
+      <article class="post">
+        
+        <div class="article-image">
+          <div class="post-image-image" style="background-image: url(/assets/images/woods.jpg)">
+            Article Image
+          </div>
+          <div class="post-meta">
+            <h1 class="post-title">Koala Facebook and Rails, oh my</h1>
+            <div class="cf post-meta-text">
+              <div class="author-image" style="background-image: url(/assets/images/my_github_picture.jpeg)">Blog Logo</div>
+              <h4 class="author-name" itemprop="author" itemscope itemtype="http://schema.org/Person">Chris Thorsen</h4>
+              on
+              <time datetime="2014-10-02 10:34">02 Oct 2014</time>
+              <!-- , tagged on <span class="post-tag-">, <a href="/tag/"></a></span> -->
+            </div>
+            <div style="text-align:center">
+              <a href="#topofpage" class="topofpage"><i class="fa fa-angle-down"></i></a>
+            </div>
+          </div>
+        </div>
+        <script>
+          (function ($) {
+              "use strict";
+              $(document).ready(function(){
+                  var $window = $(window),
+                      $image = $('.post-image-image');
+                  $window.on('scroll', function() {
+                      var top = $window.scrollTop();
+
+                      if (top < 0 || top > 1500) { return; }
+                      $image
+                          .css('transform', 'translate3d(0px, '+top/3+'px, 0px)')
+                          .css('opacity', 1-Math.max(top/700, 0));
+                  });
+                  $window.trigger('scroll');
+
+                  var height = $('.article-image').height();
+                      $('.post-content').css('padding-top', height + 'px');
+
+                  $(function() {
+                    $('a[href*=#]:not([href=#])').click(function() {
+                      if (location.pathname.replace(/^\//,'') == this.pathname.replace(/^\//,'') && location.hostname == this.hostname) {
+                        var target = $(this.hash);
+                        target = target.length ? target : $('[name=' + this.hash.slice(1) +']');
+                        if (target.length) {
+                          $('html,body').animate({
+                            scrollTop: target.offset().top
+                          }, 500);
+                          return false;
+                        }
+                      }
+                    });
+                  });
+
+              });
+
+          }(jQuery));
+        </script>
+        
+        <section class="post-content">
+          <div class="post-reading">
+            <span class="post-reading-time"></span> read
+          </div>
+          <a name="topofpage"></a>
+          <div>First things first... we are going to need to install 2 gems to make our
+facebook connection work. We are going to use dotenv-rails and koala.</div>
+
+<p>To the Gemfile</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">gem &#39;dotenv-rails&#39;
+gem &#39;koala&#39;, &#39;~&gt; 1.10.0rc&#39;
+</code></pre></div>
+<p>Step 2... we need to create a .env file that we will put our facebook app<em>id and
+facebook</em>secret key into. This information is now in the environment and
+dotenv-rails will be able to fetch it....very good news</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">FACEBOOK_APP_ID=&#39;Your Facebook App id&#39;                     
+FACEBOOK_SECRET=&#39;Your Facebook secret key&#39;    
+</code></pre></div>
+<p>Wait a second...where do we get these keys? Create an app on the Facebook
+Developers page and Facebook will be kind enough to give you your very own
+app_id and a secret key.</p>
+
+<p>REMEMBER PUT THE .env FILE INTO THE .gitignore IF YOU
+DONT THE SECRET KEY IS NOT GOING TO BE A SECRET!</p>
+
+<p>Next we are going to show the user a link to sign into facebook:</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">link_to(&quot;Login&quot;, Koala::Facebook::OAuth.new(ENV.fetch(&#39;FACEBOOK_APP_ID&#39;), ENV.fetch(&#39;FACEBOOK_SECRET&#39;), sessions_url).url_for_oauth_code) %&gt;
+</code></pre></div>
+<p>Koala::Facebook:OAuth.new takes three arguments, the app id and the app<em>secret which we fetch using
+dotenv-rails and where we want Facebook&#39;s response to be targeted. I chose to
+send facebook&#39;s response to the sessions</em>url which will trigger Sessions.new.</p>
+
+<p>Recap: we used the Koala gem to send a login request to facebook and the
+response is going to the Sessions controller... what are we going to do now?</p>
+
+<p>Sessions Controller:</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">access_token = set_access_token                         
+user = FacebookUser.new(access_token).find_or_create    
+session[:facebook_id] = user.facebook_id                
+session[:name] = user.name                              
+redirect_to :dashboard                                  
+
+
+
+def set_access_token 
+  if params[:code]  
+    Koala::Facebook::OAuth.new(ENV.fetch(&#39;FACEBOOK_APP_ID&#39;),ENV.fetch(&#39;FACEBOOK_SECRET&#39;), sessions_url).get_access_token(params[:code])
+  end
+end                                                                         
+</code></pre></div>
+<p>FacebookUser.new is a service method that we are going to create and use to either find a
+user who is already in our database or persist a new user. </p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">class FacebookUser                                                    
+
+  def initialize(access_token)                                        
+    graph = Koala::Facebook::API.new(access_token)                    
+    user = graph.get_object(&quot;me&quot;)                                     
+    @facebook_id = user[&quot;id&quot;]                                         
+    @name = user[&quot;first_name&quot;] + &quot; &quot; + user[&quot;last_name&quot;]              
+  end                                                                 
+
+  def find_or_create                                                  
+    User.where(facebook_id: @facebook_id).first_or_create(user_params)
+  end                                                                 
+
+  def user_params                                                     
+    {                                                                 
+      name: @name,                                                    
+      facebook_id: @facebook_id                                       
+    }                                                                 
+  end                                                                 
+end                                                                   
+</code></pre></div>
+<p>In my very simple app outline I only wanted users to have a facebook_id and a
+name. My schema looks like this</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">create_table &quot;users&quot;, force: true do |t|                                      
+  5     t.string   &quot;facebook_id&quot;                                                    
+  6     t.datetime &quot;created_at&quot;                                                     
+  7     t.datetime &quot;updated_at&quot;                                                     
+  8     t.string   &quot;name&quot;,        null: false                                       
+  9   end                                      
+</code></pre></div>
+<p>Great we have sent a request to Facebook, got a response directed to the
+sessions new controller, either found the user or created him in our database
+now we can look back at the Sessions controller to see where to go next</p>
+
+<p>Sessions Controller:</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">access_token = set_access_token                         
+user = FacebookUser.new(access_token).find_or_create    
+session[:facebook_id] = user.facebook_id                
+session[:name] = user.name                              
+redirect_to :dashboard                                  
+</code></pre></div>
+<p>We want to store the user&#39;s facebook_id as well as their name in the session so
+we can call them all over our wonderful app         </p>
+
+<p>---Chris Thorsen</p>
+
+        </section>
+        <footer class="post-footer">
+          <section class="share">
+            
+              
+                <a class="icon-twitter" href="http://twitter.com/share?text=Koala+Facebook+and+Rails%2C+oh+my&amp;url=http://ChristopherThorsen.github.io/jekyll/update/2014/10/02/welcome-to-jekyll"
+                  onclick="window.open(this.href, 'twitter-share', 'width=550,height=255');return false;">
+                <i class="fa fa-twitter"></i><span class="hidden">twitter</span>
+                </a>
+              
+            
+              
+            
+          </section>
+        </footer>
+        <div class="bottom-teaser cf">
+          <div class="isLeft">
+            <h5 class="index-headline featured"><span>Written by</span></h5>
+            <section class="author">
+              <div class="author-image" style="background-image: url(/assets/images/my_github_picture.jpeg)">Blog Logo</div>
+              <h4>Chris Thorsen</h4>
+              <p class="bio"></p>
+              <hr>
+              <p class="published">Published <time datetime="2014-10-02 10:34">02 Oct 2014</time></p>
+            </section>
+          </div>
+          
+          <div class="isRight">
+            <h5 class="index-headline featured"><span>Supported by</span></h5>
+            <footer class="site-footer">
+              <section class="poweredby">Proudly published with <a href="http://jekyllrb.com"> Jekyll</a></section>
+              <a class="subscribe" href="/feed.xml"> <span class="tooltip"> <i class="fa fa-rss"></i> You should subscribe to my feed.</span></a>
+              <div class="inner">
+                <section class="copyright">All content copyright <a href="/">Chris Thorsen</a> &copy; 2014<br>All rights reserved.</section>
+              </div>
+            </footer>
+          </div>
+        </div>
+      </article>
+    </main>
+    <div class="bottom-closer">
+      <div class="background-closer-image"  style="background-image: url(/assets/images/woods.jpg)">
+      Image
+    </div>
+    <div class="inner">
+      <h1 class="blog-title">The Blog</h1>
+      <h2 class="blog-description">A blog written by me where I will try to give back to the community that has given me so much
+</h2>
+      <a href="/" class="btn">Back to Overview</a>
+    </div>
+    </div>
+  </body>
+</html>
